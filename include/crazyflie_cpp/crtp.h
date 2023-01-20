@@ -795,14 +795,15 @@ class crtpVelocityWorldSetpointRequest
 {
 public:
   crtpVelocityWorldSetpointRequest(
-      float x, float y, float z, float yawRate)
-      : Packet(0x07, 0, 17)
+      float x, float y, float z, float height, float yaw)
+      : Packet(0x07, 0, 21)
   {
     setPayloadAt<uint8_t>(0, 1);        // type
     setPayloadAt<float>(1, x);          // m
     setPayloadAt<float>(5, y);          // m
     setPayloadAt<float>(9, z);          // m
-    setPayloadAt<float>(13, yawRate);   // rad
+    setPayloadAt<float>(13, height);    // m
+    setPayloadAt<float>(17, yaw);   // rad
   }
 };
 

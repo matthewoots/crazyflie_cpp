@@ -162,7 +162,7 @@ public:
     float rollRate, float pitchRate, float yawRate);
 
   void sendVelocityWorldSetpoint(
-    float x, float y, float z, float yawRate);
+    float x, float y, float z, float height, float yaw);
 
   void sendHoverSetpoint(
     float vx,

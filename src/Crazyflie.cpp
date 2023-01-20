@@ -178,10 +178,10 @@ void Crazyflie::sendFullStateSetpoint(
 }
 
 void Crazyflie::sendVelocityWorldSetpoint(
-        float x, float y, float z, float yawRate)
+        float x, float y, float z, float height, float yaw)
 {
   crtpVelocityWorldSetpointRequest req(
-      x, y, z, yawRate);
+      x, y, z, height, yaw);
   m_connection.send(req);
 }
 
