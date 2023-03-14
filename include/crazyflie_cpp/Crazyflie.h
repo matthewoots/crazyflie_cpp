@@ -762,6 +762,8 @@ public:
     float qy;
     float qz;
     float qw;
+    float sd_p;
+    float sd_q;
   };
 
   void sendExternalPoses(

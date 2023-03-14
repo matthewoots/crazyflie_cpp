@@ -1192,7 +1192,14 @@ void CrazyflieBroadcaster::sendExternalPoses(
   for (size_t i = 0; i < data.size(); ++i) {
     float q[4] = {data[i].qx, data[i].qy, data[i].qz, data[i].qw};
     uint32_t quat = quatcompress(q);
-    req.add(data[i].id, data[i].x * 1000, data[i].y * 1000, data[i].z * 1000, quat);
+    req.add(
+      data[i].id, 
+      data[i].x * 1000, 
+      data[i].y * 1000, 
+      data[i].z * 1000, 
+      quat,
+      data[i].sd_p * 10000,
+      data[i].sd_q * 10000);
     ++j;
     if (j == 2) {
       m_connection.send(req);
