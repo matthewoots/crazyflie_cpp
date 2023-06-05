@@ -216,6 +216,15 @@ void Crazyflie::sendPing()
     processPacket(p);
   }
 }
+
+void Crazyflie::spin_once()
+{
+  auto p = m_connection.receive(bitcraze::crazyflieLinkCpp::Connection::TimeoutNone);
+  if (p.valid()) {
+    processPacket(p);
+  }
+}
+
 #if 0
 /**
  * Transmits any outgoing packets to the crazyflie.
@@ -666,7 +675,7 @@ void Crazyflie::requestLogToc(bool forceNoCache)
 
 }
 
-void Crazyflie::requestParamToc(bool forceNoCache)
+void Crazyflie::requestParamToc(bool forceNoCache, bool requestValues)
 {
   // Lazily initialize protocol version
   if (m_protocolVersion < 0) {
@@ -774,6 +783,14 @@ void Crazyflie::requestParamToc(bool forceNoCache)
   // Request values
   assert(m_paramTocEntries.size() == numParams);
   
+  if (requestValues) {
+    requestParamValues();
+  }
+}
+
+void Crazyflie::requestParamValues()
+{
+  size_t numParams = m_paramTocEntries.size();
   for (uint16_t i = 0; i < numParams; ++i)
   {
     crtpParamReadV2Request req2(i);
@@ -830,6 +847,7 @@ void Crazyflie::requestParamToc(bool forceNoCache)
 
   }
 }
+
 void Crazyflie::requestMemoryToc()
 {
   // Find the number of memories
@@ -842,14 +860,18 @@ void Crazyflie::requestMemoryToc()
   m_logger.info("Memories: " + std::to_string(numberOfMemories));
 
   // Request detailed information
+  m_memoryTocEntries.resize(numberOfMemories);
+
   for (uint8_t i = 0; i < numberOfMemories; ++i) {
     crtpMemoryGetInfoRequest req(i);
     m_connection.send(req);
+
+#ifndef FIRMWARE_BUGGY
   }
 
   // Update internal structure with obtained data
-  m_memoryTocEntries.resize(numberOfMemories);
   for (uint8_t i = 0; i < numberOfMemories; ++i) {
+#endif
     using res = crtpMemoryGetInfoResponse;
     auto p = waitForResponse(&res::valid);
 
@@ -859,7 +881,15 @@ void Crazyflie::requestMemoryToc()
     entry.size = res::size(p);
     entry.addr = res::addr(p);
 
-    assert(i == res::id(p));
+#ifdef FIRMWARE_BUGGY
+    if (res::id(p) != i)
+    {
+      m_logger.warning("Firmware bug! expected " + std::to_string(i) + " got " + std::to_string(res::id(p)));
+      --i; // try again...
+    }
+#else
+    assert(res::id(p) == i);
+#endif
   }
 }
 
